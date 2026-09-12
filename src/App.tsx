@@ -5,6 +5,7 @@
 } from "react";
 
 import "./App.css";
+import gen2devLogo from "./assets/g2d.jpg";
 
 import MapboxWorldMap from "./components/MapboxWorldMap";
 import CountryIntelligencePanel from "./components/CountryIntelligencePanel";
@@ -1892,6 +1893,120 @@ function App() {
 
         </section>
 
+
+        {/* ==================================================
+            GEN2DEV FOOTER
+            ================================================== */}
+
+                <footer className="wm-pro-footer">
+
+          <div className="wm-pro-footer-grid">
+
+            {/* WORLD MONITOR */}
+            <div className="wm-pro-footer-section">
+              <h3>WORLD MONITOR</h3>
+
+              <p className="wm-pro-footer-description">
+                Global intelligence and monitoring platform
+                for macro, markets, energy, conflicts and
+                geopolitical risk.
+              </p>
+
+              <div className="wm-pro-footer-status">
+                <span className="wm-pro-live-dot"></span>
+                LIVE INTELLIGENCE SYSTEM
+              </div>
+            </div>
+
+
+            {/* PLATFORM */}
+            <div className="wm-pro-footer-section">
+              <h3>PLATFORM</h3>
+
+              <div className="wm-pro-footer-links">
+                <span>Global Map</span>
+                <span>Global Markets</span>
+                <span>Macro Monitor</span>
+                <span>Energy Intelligence</span>
+                <span>Country Intelligence</span>
+              </div>
+            </div>
+
+
+            {/* INTELLIGENCE */}
+            <div className="wm-pro-footer-section">
+              <h3>INTELLIGENCE</h3>
+
+              <div className="wm-pro-footer-links">
+                <span>Global Risk Engine</span>
+                <span>Breaking Intelligence</span>
+                <span>What Changed?</span>
+                <span>Impact Analysis</span>
+                <span>AI Copilot</span>
+              </div>
+            </div>
+
+
+            {/* GEN2DEV */}
+            <div className="wm-pro-footer-section wm-pro-footer-gen2dev">
+
+              <h3>DEVELOPED BY</h3>
+
+              <img
+                src={gen2devLogo}
+                alt="Gen2Dev"
+                className="wm-pro-footer-logo"
+              />
+
+              <strong>
+                Gen2Dev
+              </strong>
+
+              <span>
+                General Developer & Designer
+              </span>
+
+              <small>
+                Created & Managed by Gen2Dev
+              </small>
+
+            </div>
+
+          </div>
+
+
+          {/* DATA SOURCES */}
+
+          <div className="wm-pro-footer-sources">
+
+            <span>DATA SOURCES</span>
+
+            <div>
+              FRED • EIA • RBI • ECB •
+              Twelve Data • AIS • Global News
+            </div>
+
+          </div>
+
+
+          {/* BOTTOM BAR */}
+
+          <div className="wm-pro-footer-bottom">
+
+            <div>
+              © 2026 World Monitor
+            </div>
+
+            <div className="wm-pro-footer-bottom-links">
+              <span>Privacy</span>
+              <span>Disclaimer</span>
+              <span>Data Sources</span>
+              <span>System Status</span>
+            </div>
+
+          </div>
+
+        </footer>
       </main>
 
     </div>
@@ -1899,4 +2014,8 @@ function App() {
 }
 
 export default App;
+
+
+
+
 
