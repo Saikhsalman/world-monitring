@@ -1,0 +1,2510 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  background: #020914;
+}
+
+body {
+  overflow-x: hidden;
+  color: #dbeafe;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+.app {
+  min-height: 100vh;
+  width: 100%;
+
+  padding: 10px;
+
+  background:
+    radial-gradient(
+      circle at 50% -15%,
+      rgba(14, 116, 144, 0.15),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      #020a14 0%,
+      #020914 100%
+    );
+}
+
+main {
+  width: 100%;
+  margin: 0;
+}
+
+/* =====================================================
+   TOP BAR
+   ===================================================== */
+
+.topbar {
+  min-height: 74px;
+
+  display: grid;
+  grid-template-columns:
+    minmax(240px, 290px)
+    minmax(480px, 1fr)
+    minmax(280px, 360px)
+    90px;
+
+  align-items: center;
+  gap: 14px;
+
+  padding: 0 18px;
+  margin-bottom: 10px;
+
+  border: 1px solid #16405c;
+  border-radius: 12px;
+
+  background: rgba(3, 16, 29, 0.98);
+
+  box-shadow:
+    0 10px 30px
+    rgba(0, 0, 0, 0.25);
+}
+
+.wm-brand {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.wm-logo {
+  color: #42cfff;
+  font-size: 32px;
+  line-height: 1;
+}
+
+.topbar h1 {
+  margin: 0;
+
+  color: #eefaff;
+
+  font-size: 20px;
+  font-weight: 850;
+
+  letter-spacing: 1.4px;
+
+  white-space: nowrap;
+}
+
+.topbar p {
+  margin: 4px 0 0;
+
+  color: #6fb9d8;
+
+  font-size: 10px;
+
+  letter-spacing: 0.7px;
+
+  white-space: nowrap;
+}
+
+.wm-nav {
+  height: 74px;
+
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.wm-nav button {
+  min-width: 66px;
+
+  padding: 0 10px;
+
+  border: 0;
+  border-bottom: 2px solid transparent;
+
+  background: transparent;
+
+  color: #86a8bb;
+
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.wm-nav button:hover,
+.wm-nav-active {
+  color: #67d7ff !important;
+
+  border-bottom-color:
+    #0ea5e9 !important;
+
+  background:
+    rgba(14, 165, 233, 0.06) !important;
+}
+
+/* =====================================================
+   GLOBAL SEARCH
+   ===================================================== */
+
+.global-search {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  z-index: 3000;
+}
+
+.global-search-input-wrap {
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 0 12px;
+
+  border: 1px solid #176087;
+  border-radius: 8px;
+
+  background: #061827;
+}
+
+.global-search-icon {
+  color: #56c9f4;
+  font-size: 18px;
+}
+
+.global-search input {
+  width: 100%;
+
+  border: 0;
+  outline: none;
+
+  background: transparent;
+  color: #e6f4fb;
+
+  font-size: 13px;
+}
+
+.global-search input::placeholder {
+  color: #5a7c92;
+}
+
+.global-search-results {
+  position: absolute;
+
+  top: calc(100% + 6px);
+  left: 0;
+
+  width: 100%;
+  max-height: 320px;
+
+  overflow-y: auto;
+
+  padding: 5px;
+
+  border: 1px solid #176087;
+  border-radius: 8px;
+
+  background: #031522;
+
+  box-shadow:
+    0 16px 35px
+    rgba(0, 0, 0, 0.45);
+}
+
+.global-search-results button {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px;
+
+  border: 0;
+  border-bottom: 1px solid #0d2a3f;
+
+  background: transparent;
+
+  color: #c5d9e5;
+
+  cursor: pointer;
+
+  font-size: 12px;
+
+  text-align: left;
+}
+
+.global-search-results button:hover {
+  background: rgba(14, 165, 233, 0.1);
+  color: #fff;
+}
+
+.global-search-results strong {
+  color: #49cffa;
+  font-size: 11px;
+}
+
+.global-search-empty {
+  padding: 12px;
+
+  color: #6e8da0;
+  font-size: 12px;
+}
+
+/* =====================================================
+   LIVE
+   ===================================================== */
+
+.wm-live {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+
+  color: #35e0a3;
+
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.wm-live-dot {
+  width: 9px;
+  height: 9px;
+
+  display: inline-block;
+
+  border-radius: 50%;
+
+  background: #10d991;
+
+  box-shadow:
+    0 0 12px #10d991;
+}
+
+/* =====================================================
+   STATUS STRIP
+   ===================================================== */
+
+.wm-status-strip {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(0, 1fr)
+    );
+
+  margin-bottom: 12px;
+
+  border: 1px solid #163b56;
+  border-radius: 10px;
+
+  overflow: hidden;
+
+  background: #041321;
+}
+
+.wm-status-strip > div {
+  min-height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  padding: 8px 16px;
+
+  border-right: 1px solid #12324b;
+}
+
+.wm-status-strip > div:last-child {
+  border-right: 0;
+}
+
+.wm-status-strip span {
+  color: #7896aa;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.4px;
+}
+
+.wm-status-strip strong {
+  font-size: 12px;
+}
+
+/* =====================================================
+   DESIGN 4 COMMAND
+   ===================================================== */
+
+.wm-d4-command {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+}
+
+/* =====================================================
+   HERO
+   ===================================================== */
+
+.wm-d4-hero {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 2.2fr)
+    minmax(360px, 0.8fr);
+
+  gap: 14px;
+
+  align-items: stretch;
+}
+
+.wm-d4-map {
+  position: relative;
+
+  min-width: 0;
+  min-height: 680px;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border: 1px solid #16628a;
+  border-radius: 12px;
+
+  background: #020b16;
+}
+
+.wm-d4-map > :first-child {
+  flex: 1 1 auto;
+
+  min-height: 0;
+}
+
+.map-panel {
+  height: 100%;
+
+  margin: 0 !important;
+
+  display: flex;
+  flex-direction: column;
+
+  border: 0;
+
+  background: #020b16;
+}
+
+.map-panel .section-title {
+  display: none;
+}
+
+.map-panel > div:nth-of-type(2) {
+  flex: 1 1 auto !important;
+
+  width: 100% !important;
+
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.mapboxgl-map {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.mapboxgl-canvas-container,
+.mapboxgl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.wm-map-livebar {
+  flex: 0 0 56px;
+
+  display: grid;
+
+  grid-template-columns:
+    1.25fr
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  margin-top: 0;
+
+  border-top: 1px solid #16628a;
+
+  background: #031522;
+}
+
+.wm-map-livebar > div,
+.wm-map-livebar > span {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 0 10px;
+
+  border-right: 1px solid #12364f;
+
+  color: #9ab4c4;
+
+  font-size: 12px;
+}
+
+.wm-map-livebar > span:last-child {
+  border-right: 0;
+}
+
+.wm-map-livebar strong {
+  color: #24e1a4;
+}
+
+/* =====================================================
+   AI COLUMN
+   ===================================================== */
+
+.wm-d4-ai-column {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+}
+
+.wm-d4-ai-card,
+.wm-d4-change-card {
+  overflow: hidden;
+
+  border: 1px solid #173f59;
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #071b29 0%,
+      #04131e 100%
+    );
+}
+
+.wm-d4-ai-card {
+  flex: 1 1 auto;
+}
+
+.wm-d4-change-card {
+  flex: 0 0 auto;
+}
+
+/* =====================================================
+   AI INTELLIGENCE
+   ===================================================== */
+
+.wm-ai-panel {
+  width: 100%;
+
+  padding: 18px;
+
+  background: transparent;
+}
+
+.wm-ai-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding-bottom: 12px;
+
+  border-bottom: 1px solid #17384d;
+}
+
+.wm-ai-header > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wm-ai-icon {
+  color: #67d7ff;
+  font-size: 25px;
+}
+
+.wm-ai-header strong {
+  display: block;
+
+  color: #edfaff;
+
+  font-size: 16px;
+  font-weight: 850;
+
+  letter-spacing: 0.7px;
+}
+
+.wm-ai-header small {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #6c8da1;
+
+  font-size: 11px;
+}
+
+.wm-ai-live {
+  padding: 4px 8px;
+
+  border: 1px solid #17694f;
+  border-radius: 12px;
+
+  color: #24dca3;
+
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.wm-ai-language {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 6px;
+
+  margin-top: 12px;
+}
+
+.wm-ai-language button {
+  min-height: 34px;
+
+  border: 1px solid #153c56;
+  border-radius: 6px;
+
+  background: #061a29;
+
+  color: #85a4b7;
+
+  cursor: pointer;
+
+  font-size: 12px;
+}
+
+.wm-ai-language button.active {
+  border-color: #38bdf8;
+
+  background:
+    rgba(
+      56,
+      189,
+      248,
+      0.1
+    );
+
+  color: #67d7ff;
+}
+
+.wm-ai-quick {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 6px;
+
+  margin-top: 10px;
+}
+
+.wm-ai-quick button {
+  padding: 6px 9px;
+
+  border: 1px solid #173c56;
+  border-radius: 14px;
+
+  background: #051827;
+
+  color: #8cafc1;
+
+  cursor: pointer;
+
+  font-size: 11px;
+}
+
+.wm-ai-quick button:hover {
+  border-color: #38bdf8;
+
+  color: #67d7ff;
+}
+
+.wm-ai-input {
+  width: 100%;
+  min-height: 100px;
+
+  margin-top: 11px;
+  padding: 11px;
+
+  resize: vertical;
+
+  outline: none;
+
+  border: 1px solid #164761;
+  border-radius: 7px;
+
+  background: #020f1a;
+
+  color: #d8eaf4;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.wm-ai-input:focus {
+  border-color: #38bdf8;
+}
+
+.wm-ai-input::placeholder {
+  color: #56788c;
+}
+
+.wm-ai-ask {
+  width: 100%;
+
+  min-height: 42px;
+
+  margin-top: 8px;
+
+  border: 1px solid #147ba7;
+  border-radius: 7px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #075985,
+      #0e7490
+    );
+
+  color: #ecfeff;
+
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 850;
+
+  letter-spacing: 0.5px;
+}
+
+.wm-ai-ask:hover {
+  filter: brightness(1.1);
+}
+
+.wm-ai-ask:disabled {
+  opacity: 0.45;
+
+  cursor: not-allowed;
+}
+
+.wm-ai-error {
+  margin-top: 9px;
+
+  padding: 10px;
+
+  border:
+    1px solid rgba(
+      239,
+      68,
+      68,
+      0.35
+    );
+
+  border-radius: 6px;
+
+  background:
+    rgba(
+      127,
+      29,
+      29,
+      0.15
+    );
+
+  color: #ff818c;
+
+  font-size: 12px;
+}
+
+.wm-ai-answer {
+  margin-top: 12px;
+
+  padding: 11px;
+
+  border: 1px solid #17435e;
+  border-radius: 7px;
+
+  background: #061a29;
+}
+
+.wm-ai-answer-title {
+  color: #67d7ff;
+
+  font-size: 11px;
+  font-weight: 850;
+
+  letter-spacing: 0.7px;
+}
+
+.wm-ai-answer-text {
+  margin-top: 9px;
+
+  color: #c7d8e2;
+
+  white-space: pre-wrap;
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.wm-ai-context {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 6px;
+
+  margin-top: 10px;
+  padding-top: 9px;
+
+  border-top: 1px solid #123149;
+}
+
+.wm-ai-context span {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  padding: 7px;
+
+  border: 1px solid #102e43;
+  border-radius: 5px;
+
+  color: #7695a7;
+
+  font-size: 10px;
+}
+
+.wm-ai-context strong {
+  color: #e0f2fe;
+
+  font-size: 11px;
+}
+
+.wm-ai-data-used {
+  margin-top: 10px;
+
+  padding-top: 9px;
+
+  border-top: 1px solid #123149;
+}
+
+.wm-ai-data-used > strong {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #66869b;
+
+  font-size: 10px;
+}
+
+.wm-ai-data-used > div {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 6px;
+}
+
+.wm-ai-data-used span {
+  padding: 4px 7px;
+
+  border: 1px solid #16506d;
+  border-radius: 12px;
+
+  background:
+    rgba(
+      14,
+      165,
+      233,
+      0.08
+    );
+
+  color: #67d7ff;
+
+  font-size: 10px;
+  font-weight: 750;
+}
+
+/* =====================================================
+   WHAT CHANGED
+   ===================================================== */
+
+.wm-changes-panel {
+  width: 100%;
+
+  padding: 16px;
+
+  background: transparent;
+}
+
+.wm-changes-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding-bottom: 10px;
+
+  border-bottom: 1px solid #17384d;
+}
+
+.wm-changes-header > div {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+}
+
+.wm-changes-icon {
+  color: #67d7ff;
+
+  font-size: 21px;
+}
+
+.wm-changes-header strong {
+  display: block;
+
+  color: #eefaff;
+
+  font-size: 14px;
+}
+
+.wm-changes-header small {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #6f8fa2;
+
+  font-size: 10px;
+}
+
+.wm-changes-live {
+  padding: 4px 8px;
+
+  border: 1px solid #17694f;
+  border-radius: 12px;
+
+  color: #24dca3;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.wm-changes-state {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  padding: 16px 4px;
+
+  color: #839eaf;
+
+  font-size: 12px;
+
+  line-height: 1.5;
+}
+
+.wm-changes-state strong {
+  color: #67d7ff;
+
+  font-size: 13px;
+}
+
+.wm-changes-error {
+  margin-top: 9px;
+
+  padding: 10px;
+
+  border:
+    1px solid rgba(
+      239,
+      68,
+      68,
+      0.35
+    );
+
+  border-radius: 6px;
+
+  background:
+    rgba(
+      127,
+      29,
+      29,
+      0.15
+    );
+
+  color: #ff818c;
+
+  font-size: 12px;
+}
+
+.wm-changes-summary {
+  display: grid;
+
+  grid-template-columns:
+    auto
+    48px
+    minmax(0, 1fr);
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 10px 0;
+
+  border-bottom: 1px solid #123149;
+}
+
+.wm-changes-summary span {
+  color: #7894a5;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.wm-changes-summary strong {
+  color: #67d7ff;
+
+  font-size: 20px;
+}
+
+.wm-changes-summary small {
+  color: #67879a;
+
+  font-size: 10px;
+}
+
+.wm-changes-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+
+  margin-top: 9px;
+}
+
+.wm-change-item {
+  display: grid;
+
+  grid-template-columns:
+    24px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 9px;
+
+  border: 1px solid #12364f;
+  border-radius: 6px;
+
+  background: #061a29;
+}
+
+.wm-change-direction {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 22px;
+  height: 22px;
+
+  border-radius: 50%;
+
+  color: #eaf8ff;
+
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.wm-change-main {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.wm-change-main strong {
+  color: #d7e9f3;
+
+  font-size: 12px;
+}
+
+.wm-change-main small {
+  color: #6c8da1;
+
+  font-size: 11px;
+}
+
+.wm-change-severity {
+  padding: 4px 6px;
+
+  border-radius: 5px;
+
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.wm-change-high {
+  border-left: 3px solid #ef4444;
+}
+
+.wm-change-high .wm-change-severity {
+  color: #ff7373;
+
+  background:
+    rgba(
+      239,
+      68,
+      68,
+      0.12
+    );
+}
+
+.wm-change-medium {
+  border-left: 3px solid #f59e0b;
+}
+
+.wm-change-medium .wm-change-severity {
+  color: #fbbf24;
+
+  background:
+    rgba(
+      245,
+      158,
+      11,
+      0.12
+    );
+}
+
+.wm-change-low {
+  border-left: 3px solid #22c55e;
+}
+
+.wm-change-low .wm-change-severity {
+  color: #4ade80;
+
+  background:
+    rgba(
+      34,
+      197,
+      94,
+      0.12
+    );
+}
+
+.wm-changes-coverage {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 9px;
+  padding-top: 9px;
+
+  border-top: 1px solid #123149;
+
+  color: #6d8da0;
+
+  font-size: 10px;
+}
+
+.wm-changes-coverage strong {
+  color: #24dca3;
+
+  font-size: 11px;
+}
+
+/* =====================================================
+   INTELLIGENCE DECK
+   ===================================================== */
+
+.wm-d4-deck {
+  padding: 16px;
+
+  border: 1px solid #17384d;
+  border-radius: 12px;
+
+  background: #04131e;
+}
+
+.wm-d4-deck-heading {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 14px;
+}
+
+.wm-d4-deck-heading > div > span {
+  color: #45c9ff;
+
+  font-size: 11px;
+  font-weight: 850;
+
+  letter-spacing: 1.5px;
+}
+
+.wm-d4-deck-heading h2 {
+  margin: 4px 0 0;
+
+  color: #eefaff;
+
+  font-size: 21px;
+}
+
+.wm-d4-live-status {
+  color: #32e6a1;
+
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.wm-d4-deck-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 12px;
+}
+
+.wm-d4-card {
+  min-width: 0;
+
+  padding: 14px;
+
+  overflow: hidden;
+
+  border: 1px solid #15364b;
+  border-radius: 9px;
+
+  background: #061925;
+}
+
+/* =====================================================
+   GLOBAL RISK CARD
+   ===================================================== */
+
+.wm-d4-card-title {
+  margin-bottom: 9px;
+
+  color: #7897aa;
+
+  font-size: 12px;
+  font-weight: 850;
+
+  letter-spacing: 1px;
+}
+
+.wm-d4-risk-number {
+  font-size: 36px;
+  font-weight: 900;
+
+  line-height: 1;
+}
+
+.wm-d4-risk-level {
+  display: block;
+
+  margin-top: 8px;
+
+  font-size: 14px;
+}
+
+.wm-d4-risk > p {
+  margin: 9px 0 12px;
+
+  color: #8aa5b5;
+
+  font-size: 12px;
+}
+
+.wm-d4-risk-components {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 7px;
+}
+
+.wm-d4-risk-components span {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  padding: 7px 8px;
+
+  border: 1px solid #12364a;
+  border-radius: 6px;
+
+  color: #829dac;
+
+  font-size: 11px;
+}
+
+.wm-d4-risk-components strong {
+  color: #dff6ff;
+
+  font-size: 12px;
+}
+
+/* =====================================================
+   GENERIC CARDS
+   ===================================================== */
+
+.card,
+.wm-panel,
+.india-panel {
+  width: 100%;
+
+  border: 1px solid #15384f;
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(
+        4,
+        20,
+        34,
+        0.99
+      ),
+      rgba(
+        3,
+        15,
+        27,
+        0.99
+      )
+    );
+
+  overflow: hidden;
+}
+
+.card {
+  padding: 14px;
+}
+
+.card-heading {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  margin-bottom: 9px;
+  padding-bottom: 9px;
+
+  border-bottom: 1px solid #123149;
+}
+
+.card-heading h3,
+.card h3 {
+  margin: 0;
+
+  color: #66d9ff;
+
+  font-size: 14px;
+}
+
+.card-heading > span {
+  color: #24dca3;
+
+  border: 1px solid #17694f;
+  border-radius: 14px;
+
+  padding: 4px 7px;
+
+  font-size: 10px;
+}
+
+/* =====================================================
+   DATA ROWS
+   ===================================================== */
+
+.data-row {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 9px 2px;
+
+  border-bottom: 1px solid #0d2a3f;
+
+  color: #9ab0bf;
+
+  font-size: 12px;
+}
+
+.data-row:last-child {
+  border-bottom: 0;
+}
+
+.data-row strong {
+  color: #e2edf5;
+
+  font-size: 12px;
+}
+
+.market-source {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #637f92;
+
+  font-size: 10px;
+}
+
+/* =====================================================
+   VALUE COLORS
+   ===================================================== */
+
+.positive {
+  color: #22dc9d !important;
+}
+
+.negative {
+  color: #ff5964 !important;
+}
+
+.warning {
+  color: #f7b940 !important;
+}
+
+/* =====================================================
+   BREAKING
+   ===================================================== */
+
+.wm-d4-breaking {
+  padding: 14px;
+
+  border: 1px solid #17384d;
+  border-radius: 12px;
+
+  background: #04131e;
+}
+
+.news-item {
+  margin-top: 7px;
+
+  padding: 10px;
+
+  border: 1px solid #103149;
+  border-left: 3px solid #64839a;
+  border-radius: 6px;
+
+  background: #061c2c;
+
+  color: #c0d1dc;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.news-item.high {
+  border-left-color: #ef4444;
+}
+
+.news-item.medium {
+  border-left-color: #f59e0b;
+}
+
+.news-item.low {
+  border-left-color: #10b981;
+}
+
+/* =====================================================
+   COUNTRY + IMPACT
+   ===================================================== */
+
+.wm-d4-detail-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 14px;
+}
+
+.wm-d4-detail-card {
+  min-width: 0;
+
+  overflow: hidden;
+
+  border: 1px solid #17384d;
+  border-radius: 12px;
+
+  background: #04131e;
+}
+
+.wm-d4-empty-impact {
+  min-height: 220px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  text-align: center;
+}
+
+.wm-d4-empty-impact span {
+  color: #45c9ff;
+
+  font-size: 11px;
+  font-weight: 850;
+
+  letter-spacing: 1px;
+}
+
+.wm-d4-empty-impact strong {
+  margin-top: 9px;
+
+  color: #eefaff;
+
+  font-size: 18px;
+}
+
+.wm-d4-empty-impact p {
+  max-width: 360px;
+
+  margin: 8px 0 0;
+
+  color: #7e9baa;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+/* =====================================================
+   COUNTRY PANEL
+   ===================================================== */
+
+.country-panel-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 14px;
+
+  border-bottom: 1px solid #123149;
+
+  background:
+    linear-gradient(
+      90deg,
+      #061c2c,
+      #041522
+    );
+}
+
+.country-panel-title {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+.country-panel-title h3 {
+  margin: 0;
+
+  color: #e7f7ff;
+
+  font-size: 15px;
+}
+
+.country-panel-title > div > span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #657f91;
+
+  font-size: 10px;
+}
+
+.country-flag {
+  font-size: 24px;
+}
+
+.country-close-button {
+  width: 30px;
+  height: 30px;
+
+  border: 1px solid #244a65;
+  border-radius: 6px;
+
+  background:
+    rgba(
+      7,
+      27,
+      42,
+      0.8
+    );
+
+  color: #91b4ca;
+
+  cursor: pointer;
+}
+
+.country-live-status {
+  min-height: 34px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 7px 12px;
+
+  border-bottom: 1px solid #0d2c42;
+
+  background: #041522;
+
+  color: #74a3be;
+
+  font-size: 10px;
+}
+
+.country-live-status strong {
+  margin-left: auto;
+
+  color: #4cc9f0;
+}
+
+.country-status-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #22d99b;
+
+  box-shadow:
+    0 0 8px #22d99b;
+}
+
+.country-tabs {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(0, 1fr)
+    );
+
+  border-bottom: 1px solid #123149;
+
+  background: #03111c;
+}
+
+.country-tab {
+  min-width: 0;
+
+  padding: 10px 4px;
+
+  border: 0;
+  border-right: 1px solid #102d43;
+
+  background: transparent;
+
+  color: #728ea0;
+
+  cursor: pointer;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.country-tab.active {
+  color: #61d8ff;
+
+  background:
+    rgba(
+      14,
+      165,
+      233,
+      0.1
+    );
+
+  box-shadow:
+    inset 0 -2px #38bdf8;
+}
+
+.country-tab-content {
+  padding: 12px;
+}
+
+/* =====================================================
+   BOTTOM
+   ===================================================== */
+
+.wm-bottom-grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1.3fr);
+
+  gap: 14px;
+
+  margin-top: 14px;
+}
+
+.india-panel {
+  margin: 0;
+}
+
+.section-title {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 13px 14px;
+
+  border-bottom: 1px solid #123149;
+}
+
+.section-title h2 {
+  margin: 0;
+
+  color: #67dafc;
+
+  font-size: 15px;
+}
+
+.section-title p {
+  margin: 4px 0 0;
+
+  color: #6d889a;
+
+  font-size: 11px;
+}
+
+.section-title > span {
+  color: #24dca3;
+
+  border: 1px solid #17694f;
+  border-radius: 14px;
+
+  padding: 4px 8px;
+
+  font-size: 10px;
+}
+
+.india-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 8px;
+
+  padding: 12px;
+}
+
+.impact-card {
+  min-height: 78px;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: space-between;
+
+  padding: 11px;
+
+  border: 1px solid #12364f;
+  border-radius: 7px;
+
+  background: #061a29;
+}
+
+.impact-card span {
+  color: #718da0;
+
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.impact-card strong {
+  font-size: 12px;
+}
+
+/* =====================================================
+   LIVE EVENT TIMELINE
+   ===================================================== */
+
+.wm-event-timeline {
+  width: 100%;
+
+  margin-top: 10px;
+
+  border-top: 1px solid #17384d;
+
+  background: #03111d;
+}
+
+.wm-timeline-header {
+  min-height: 38px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 12px;
+
+  border-bottom: 1px solid #12354d;
+
+  background: #051827;
+}
+
+.wm-timeline-header > div {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+}
+
+.wm-timeline-header strong {
+  color: #65d9ff;
+
+  font-size: 11px;
+}
+
+.wm-timeline-header > span {
+  color: #678699;
+
+  font-size: 10px;
+}
+
+.wm-timeline-track {
+  display: flex;
+
+  width: 100%;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.wm-timeline-event {
+  flex: 0 0 230px;
+
+  min-height: 76px;
+
+  display: grid;
+
+  grid-template-columns:
+    42px
+    28px
+    minmax(0, 1fr);
+
+  grid-template-rows:
+    1fr
+    auto;
+
+  align-items: center;
+
+  gap: 0 7px;
+
+  padding: 9px;
+
+  border: 0;
+  border-right: 1px solid #123047;
+
+  background: transparent;
+
+  color: #b9ceda;
+
+  cursor: pointer;
+
+  text-align: left;
+}
+
+.wm-timeline-event:hover {
+  background:
+    rgba(
+      14,
+      165,
+      233,
+      0.08
+    );
+}
+
+.wm-timeline-time {
+  color: #69879a;
+
+  font-size: 10px;
+}
+
+.wm-timeline-icon {
+  font-size: 17px;
+}
+
+.wm-timeline-copy {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.wm-timeline-copy strong {
+  overflow: hidden;
+
+  color: #d8eaf4;
+
+  font-size: 11px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wm-timeline-copy small {
+  overflow: hidden;
+
+  color: #6c8a9c;
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wm-timeline-severity {
+  grid-column: 3;
+
+  width: fit-content;
+
+  padding: 3px 6px;
+
+  border-radius: 4px;
+
+  font-size: 9px;
+  font-weight: 850;
+}
+
+/* =====================================================
+   SCROLLBAR
+   ===================================================== */
+
+* {
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #195a7e
+    #041421;
+}
+
+/* =====================================================
+   MAPBOX
+   ===================================================== */
+
+.mapboxgl-popup-content {
+  border: 1px solid #38bdf8 !important;
+
+  border-radius: 7px !important;
+}
+
+.mapboxgl-ctrl-group {
+  border: 1px solid #155078 !important;
+
+  background: #061a29 !important;
+}
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (max-width: 1450px) {
+  .topbar {
+    grid-template-columns:
+      230px
+      minmax(420px, 1fr)
+      280px
+      70px;
+  }
+
+  .wm-nav button {
+    min-width: 56px;
+
+    padding: 0 7px;
+  }
+
+  .wm-d4-hero {
+    grid-template-columns:
+      minmax(0, 1.8fr)
+      minmax(340px, 0.8fr);
+  }
+
+  .wm-d4-deck-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+@media (max-width: 1100px) {
+  .wm-nav {
+    display: none;
+  }
+
+  .topbar {
+    grid-template-columns:
+      minmax(220px, 1fr)
+      minmax(280px, 360px)
+      80px;
+  }
+
+  .wm-d4-hero,
+  .wm-d4-detail-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .wm-d4-map {
+    min-height: 560px;
+  }
+
+  .wm-bottom-grid {
+    grid-template-columns:
+      1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .app {
+    padding: 6px;
+  }
+
+  .topbar {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    min-height: auto;
+
+    padding: 12px;
+  }
+
+  .global-search {
+    order: 3;
+
+    width: 100%;
+  }
+
+  .wm-status-strip {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .wm-d4-deck-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .wm-d4-map {
+    min-height: 460px;
+  }
+
+  .india-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+/* =====================================================
+   MAP VISUAL UPGRADE
+   ===================================================== */
+
+.wm-d4-hero {
+  grid-template-columns:
+    minmax(0, 2.5fr)
+    minmax(340px, 0.75fr);
+}
+
+.wm-d4-map {
+  min-height: 760px;
+
+  border: 1px solid #1d5c7a;
+
+  border-radius: 14px;
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(14, 116, 144, 0.08),
+      #020914 70%
+    );
+
+  box-shadow:
+    inset 0 0 50px rgba(14, 165, 233, 0.05),
+    0 12px 35px rgba(0, 0, 0, 0.3);
+}
+
+
+/* Remove extra map-panel framing */
+
+.wm-d4-map .map-panel {
+  height: 100%;
+
+  border: 0 !important;
+
+  border-radius: 0 !important;
+
+  background: transparent !important;
+}
+
+
+/* Hide old section header inside map */
+
+.wm-d4-map .section-title {
+  display: none !important;
+}
+
+
+/* Make actual Mapbox take all available room */
+
+.wm-d4-map .mapboxgl-map {
+  width: 100% !important;
+  height: 100% !important;
+
+  min-height: 690px !important;
+}
+
+
+/* Make canvas fully cover */
+
+.wm-d4-map .mapboxgl-canvas-container,
+.wm-d4-map .mapboxgl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+/* Better map controls */
+
+.wm-d4-map .mapboxgl-ctrl-top-right {
+  top: 12px;
+  right: 12px;
+}
+
+.wm-d4-map .mapboxgl-ctrl-group {
+  border: 1px solid #1f5d7b !important;
+
+  border-radius: 8px !important;
+
+  overflow: hidden;
+
+  background:
+    rgba(3, 20, 33, 0.94) !important;
+
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.wm-d4-map .mapboxgl-ctrl-group button {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+
+/* Bottom live strip cleaner */
+
+.wm-map-livebar {
+  flex: 0 0 50px;
+
+  backdrop-filter: blur(8px);
+
+  background:
+    rgba(3, 20, 33, 0.96);
+}
+
+.wm-map-livebar > div,
+.wm-map-livebar > span {
+  font-size: 11px;
+
+  color: #a7c2d2;
+}
+
+
+/* If layer controls are inside map panel */
+
+.wm-d4-map .map-panel > div:last-child {
+  margin: 0 !important;
+
+  border-top: 1px solid #164764 !important;
+
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+
+  border-radius: 0 !important;
+
+  background:
+    rgba(2, 15, 26, 0.96) !important;
+}
+
+
+/* Desktop */
+
+@media (min-width: 1450px) {
+  .wm-d4-map {
+    min-height: 820px;
+  }
+
+  .wm-d4-map .mapboxgl-map {
+    min-height: 750px !important;
+  }
+}
+
+
+/* Smaller screens */
+
+@media (max-width: 1100px) {
+  .wm-d4-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .wm-d4-map {
+    min-height: 600px;
+  }
+
+  .wm-d4-map .mapboxgl-map {
+    min-height: 540px !important;
+  }
+}
+
+/* =====================================================
+   DESIGN 4 — REMOVE EMPTY CARD SPACE
+   ===================================================== */
+
+.wm-d4-deck-grid {
+  align-items: start !important;
+}
+
+.wm-d4-card {
+  height: auto !important;
+  min-height: 0 !important;
+  align-self: start !important;
+}
+
+.wm-d4-card > * {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+/* Generic cards inside intelligence deck */
+
+.wm-d4-deck .card,
+.wm-d4-deck .wm-panel {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+/* Deck itself should only use required content height */
+
+.wm-d4-deck {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+/* Keep cards compact */
+
+.wm-d4-risk {
+  height: fit-content !important;
+}
+
+.wm-d4-deck-grid > article {
+  height: fit-content !important;
+}
+
+/* Better spacing */
+
+.wm-d4-card {
+  padding: 14px !important;
+}
+
+.wm-d4-risk-components {
+  margin-top: 10px;
+}
+
+/* Remove accidental flex stretching */
+
+.wm-d4-deck-grid .card {
+  flex: none !important;
+}
+
+/* =====================================================
+   DESKTOP INTELLIGENCE DECK
+   ===================================================== */
+
+@media (min-width: 1200px) {
+  .wm-d4-deck-grid {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+
+    align-items: start !important;
+  }
+}
+/* =====================================================
+   DESIGN 4 — FILL EMPTY SPACE WITH BREAKING INTELLIGENCE
+   ===================================================== */
+
+.wm-d4-deck-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr))
+    minmax(300px, 1fr) !important;
+
+  grid-template-rows:
+    auto
+    auto !important;
+
+  gap: 12px !important;
+
+  align-items: start !important;
+}
+
+
+/* GLOBAL RISK */
+
+.wm-d4-deck-grid
+  > .wm-d4-card:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+
+  height: auto !important;
+}
+
+
+/* GLOBAL MARKETS */
+
+.wm-d4-deck-grid
+  > .wm-d4-card:nth-child(2) {
+  grid-column: 2;
+  grid-row: 1;
+
+  height: auto !important;
+}
+
+
+/* GLOBAL MACRO */
+
+.wm-d4-deck-grid
+  > .wm-d4-card:nth-child(3) {
+  grid-column: 3;
+  grid-row: 1;
+
+  height: auto !important;
+}
+
+
+/* PETROLEUM ENERGY
+   Right side, spanning top + breaking row
+*/
+
+.wm-d4-deck-grid
+  > .wm-d4-card:nth-child(4) {
+  grid-column: 4;
+  grid-row: 1 / 3;
+
+  height: auto !important;
+
+  align-self: start;
+}
+
+
+/* BREAKING INTELLIGENCE
+   Fills empty area under first 3 cards
+*/
+
+.wm-d4-breaking-card {
+  grid-column: 1 / 4 !important;
+  grid-row: 2 !important;
+
+  width: 100% !important;
+
+  height: auto !important;
+  min-height: 0 !important;
+
+  align-self: start !important;
+}
+
+
+/* Breaking section itself */
+
+.wm-d4-breaking-card > * {
+  width: 100% !important;
+
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+
+/* Reduce unnecessary space */
+
+.wm-d4-card {
+  min-height: 0 !important;
+}
+
+.wm-d4-deck-grid > article {
+  align-self: start !important;
+}
+
+
+/* =====================================================
+   TABLET
+   ===================================================== */
+
+@media (max-width: 1200px) {
+  .wm-d4-deck-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+
+    grid-template-rows:
+      auto !important;
+  }
+
+  .wm-d4-deck-grid
+    > .wm-d4-card:nth-child(1),
+  .wm-d4-deck-grid
+    > .wm-d4-card:nth-child(2),
+  .wm-d4-deck-grid
+    > .wm-d4-card:nth-child(3),
+  .wm-d4-deck-grid
+    > .wm-d4-card:nth-child(4),
+  .wm-d4-breaking-card {
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+
+  .wm-d4-breaking-card {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 700px) {
+  .wm-d4-deck-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+  .wm-d4-breaking-card {
+    grid-column: 1 !important;
+  }
+}

@@ -1,0 +1,1307 @@
+﻿import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import mapboxgl from "mapbox-gl";
+
+import MapLayerControls, {
+  type LayerKey,
+} from "./MapLayerControls";
+
+import "mapbox-gl/dist/mapbox-gl.css";
+
+mapboxgl.accessToken =
+  import.meta.env.VITE_MAPBOX_TOKEN;
+
+// =====================================================
+// TYPES
+// =====================================================
+
+type Props = {
+  onCountrySelect?: (
+    countryName: string,
+    countryCode: string
+  ) => void;
+};
+
+type CountryFeatureProperties = {
+  ADMIN?: string;
+  NAME?: string;
+  name?: string;
+
+  "ISO3166-1-Alpha-3"?: string;
+  "ISO3166-1-Alpha-2"?: string;
+
+  ISO_A3?: string;
+  ADM0_A3?: string;
+};
+
+type WeatherLocation = {
+  id: string;
+
+  city: string;
+  country: string;
+
+  latitude: number;
+  longitude: number;
+
+  status: string;
+
+  weather?: {
+    temperature?: number | null;
+    feelsLike?: number | null;
+    humidity?: number | null;
+    precipitation?: number | null;
+    rain?: number | null;
+    cloudCover?: number | null;
+    pressure?: number | null;
+    windSpeed?: number | null;
+    windDirection?: number | null;
+    windGust?: number | null;
+    weatherCode?: number | null;
+    condition?: string;
+  };
+
+  observationTime?: string | null;
+  timezone?: string | null;
+  source?: string;
+};
+
+type WeatherResponse = {
+  status: string;
+
+  source: string;
+
+  liveCount: number;
+
+  totalCount: number;
+
+  locations: WeatherLocation[];
+
+  updatedAt: string;
+};
+
+// =====================================================
+// COUNTRY GEOJSON
+// =====================================================
+
+const COUNTRY_GEOJSON_URL =
+  "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
+
+// =====================================================
+// WEATHER ICON
+// =====================================================
+
+function getWeatherIcon(
+  condition?: string
+) {
+  const value =
+    String(
+      condition || ""
+    ).toLowerCase();
+
+  if (
+    value.includes(
+      "thunder"
+    )
+  ) {
+    return "â›ˆï¸";
+  }
+
+  if (
+    value.includes(
+      "rain"
+    ) ||
+    value.includes(
+      "drizzle"
+    )
+  ) {
+    return "ðŸŒ§ï¸";
+  }
+
+  if (
+    value.includes(
+      "snow"
+    )
+  ) {
+    return "ðŸŒ¨ï¸";
+  }
+
+  if (
+    value.includes(
+      "fog"
+    )
+  ) {
+    return "ðŸŒ«ï¸";
+  }
+
+  if (
+    value.includes(
+      "cloud"
+    )
+  ) {
+    return "â˜ï¸";
+  }
+
+  if (
+    value.includes(
+      "clear"
+    )
+  ) {
+    return "â˜€ï¸";
+  }
+
+  return "ðŸŒ¦ï¸";
+}
+
+// =====================================================
+// COMPONENT
+// =====================================================
+
+function MapboxWorldMap({
+  onCountrySelect,
+}: Props) {
+  const mapContainer =
+    useRef<HTMLDivElement | null>(
+      null
+    );
+
+  const mapRef =
+    useRef<mapboxgl.Map | null>(
+      null
+    );
+
+  const weatherMarkersRef =
+    useRef<mapboxgl.Marker[]>(
+      []
+    );
+
+  // ===================================================
+  // MAP LAYERS
+  // ===================================================
+
+  const [
+    activeLayers,
+    setActiveLayers,
+  ] = useState<
+    Record<
+      LayerKey,
+      boolean
+    >
+  >({
+    countries: true,
+    weather: false,
+    flights: false,
+    ships: false,
+  });
+
+  // ===================================================
+  // CALLBACK REF
+  // ===================================================
+
+  const onCountrySelectRef =
+    useRef(onCountrySelect);
+
+  useEffect(() => {
+    onCountrySelectRef.current =
+      onCountrySelect;
+  }, [onCountrySelect]);
+
+  // ===================================================
+  // TOGGLE LAYER
+  // ===================================================
+
+  const toggleMapLayer = (
+    layer: LayerKey
+  ) => {
+    setActiveLayers(
+      (current) => ({
+        ...current,
+
+        [layer]:
+          !current[layer],
+      })
+    );
+  };
+
+  // ===================================================
+  // REMOVE WEATHER MARKERS
+  // ===================================================
+
+  const clearWeatherMarkers =
+    () => {
+      weatherMarkersRef.current.forEach(
+        (marker) => {
+          marker.remove();
+        }
+      );
+
+      weatherMarkersRef.current =
+        [];
+    };
+
+  // ===================================================
+  // COUNTRY VISIBILITY
+  // ===================================================
+
+  useEffect(() => {
+    const map =
+      mapRef.current;
+
+    if (!map) {
+      return;
+    }
+
+    if (
+      !map.isStyleLoaded()
+    ) {
+      return;
+    }
+
+    const visibility =
+      activeLayers.countries
+        ? "visible"
+        : "none";
+
+    const layers = [
+      "countries-base",
+      "countries-hover",
+      "country-selected",
+      "countries-border",
+    ];
+
+    layers.forEach(
+      (layerId) => {
+        if (
+          map.getLayer(
+            layerId
+          )
+        ) {
+          map.setLayoutProperty(
+            layerId,
+            "visibility",
+            visibility
+          );
+        }
+      }
+    );
+  }, [
+    activeLayers.countries,
+  ]);
+
+  // ===================================================
+  // LIVE WEATHER LAYER
+  // ===================================================
+
+  useEffect(() => {
+    const map =
+      mapRef.current;
+
+    if (!map) {
+      return;
+    }
+
+    // WEATHER OFF
+    if (
+      !activeLayers.weather
+    ) {
+      clearWeatherMarkers();
+
+      return;
+    }
+
+    let cancelled =
+      false;
+
+    const loadWeather =
+      async () => {
+        try {
+          console.log(
+            "LOADING WORLD WEATHER"
+          );
+
+          const response =
+            await fetch(
+              "/api/weather/world"
+            );
+
+          if (
+            !response.ok
+          ) {
+            throw new Error(
+              `Weather HTTP ${response.status}`
+            );
+          }
+
+          const data:
+            WeatherResponse =
+            await response.json();
+
+          if (cancelled) {
+            return;
+          }
+
+          clearWeatherMarkers();
+
+          for (
+            const location
+            of data.locations || []
+          ) {
+            if (
+              location.status !==
+              "live"
+            ) {
+              continue;
+            }
+
+            if (
+              !Number.isFinite(
+                Number(
+                  location.latitude
+                )
+              ) ||
+              !Number.isFinite(
+                Number(
+                  location.longitude
+                )
+              )
+            ) {
+              continue;
+            }
+
+            // =========================================
+            // MARKER DOM
+            // =========================================
+
+            const markerElement =
+              document.createElement(
+                "button"
+              );
+
+            markerElement.type =
+              "button";
+
+            markerElement.style.border =
+              "1px solid rgba(56,189,248,0.65)";
+
+            markerElement.style.background =
+              "rgba(2,6,23,0.88)";
+
+            markerElement.style.color =
+              "#e2e8f0";
+
+            markerElement.style.borderRadius =
+              "10px";
+
+            markerElement.style.padding =
+              "5px 7px";
+
+            markerElement.style.cursor =
+              "pointer";
+
+            markerElement.style.fontSize =
+              "11px";
+
+            markerElement.style.fontWeight =
+              "700";
+
+            markerElement.style.whiteSpace =
+              "nowrap";
+
+            markerElement.style.boxShadow =
+              "0 4px 12px rgba(0,0,0,0.35)";
+
+            markerElement.style.display =
+              "flex";
+
+            markerElement.style.alignItems =
+              "center";
+
+            markerElement.style.gap =
+              "4px";
+
+            const icon =
+              getWeatherIcon(
+                location.weather
+                  ?.condition
+              );
+
+            const temperature =
+              location.weather
+                ?.temperature;
+
+            markerElement.textContent =
+              `${icon} ${
+                temperature !==
+                  null &&
+                temperature !==
+                  undefined
+                  ? `${temperature}Â°C`
+                  : "--"
+              }`;
+
+            // =========================================
+            // POPUP CONTENT
+            // =========================================
+
+            const popupContainer =
+              document.createElement(
+                "div"
+              );
+
+            popupContainer.style.color =
+              "#0f172a";
+
+            popupContainer.style.fontFamily =
+              "Arial, sans-serif";
+
+            popupContainer.style.minWidth =
+              "220px";
+
+            popupContainer.style.lineHeight =
+              "1.55";
+
+            const title =
+              document.createElement(
+                "strong"
+              );
+
+            title.textContent =
+              `${icon} ${location.city}, ${location.country}`;
+
+            popupContainer.appendChild(
+              title
+            );
+
+            const condition =
+              document.createElement(
+                "div"
+              );
+
+            condition.textContent =
+              `Condition: ${
+                location.weather
+                  ?.condition ||
+                "Unknown"
+              }`;
+
+            popupContainer.appendChild(
+              condition
+            );
+
+            const temp =
+              document.createElement(
+                "div"
+              );
+
+            temp.textContent =
+              `Temperature: ${
+                location.weather
+                  ?.temperature ??
+                "--"
+              } Â°C`;
+
+            popupContainer.appendChild(
+              temp
+            );
+
+            const feelsLike =
+              document.createElement(
+                "div"
+              );
+
+            feelsLike.textContent =
+              `Feels like: ${
+                location.weather
+                  ?.feelsLike ??
+                "--"
+              } Â°C`;
+
+            popupContainer.appendChild(
+              feelsLike
+            );
+
+            const humidity =
+              document.createElement(
+                "div"
+              );
+
+            humidity.textContent =
+              `Humidity: ${
+                location.weather
+                  ?.humidity ??
+                "--"
+              }%`;
+
+            popupContainer.appendChild(
+              humidity
+            );
+
+            const rain =
+              document.createElement(
+                "div"
+              );
+
+            rain.textContent =
+              `Rain: ${
+                location.weather
+                  ?.rain ??
+                0
+              } mm`;
+
+            popupContainer.appendChild(
+              rain
+            );
+
+            const wind =
+              document.createElement(
+                "div"
+              );
+
+            wind.textContent =
+              `Wind: ${
+                location.weather
+                  ?.windSpeed ??
+                "--"
+              } km/h`;
+
+            popupContainer.appendChild(
+              wind
+            );
+
+            const gust =
+              document.createElement(
+                "div"
+              );
+
+            gust.textContent =
+              `Wind gust: ${
+                location.weather
+                  ?.windGust ??
+                "--"
+              } km/h`;
+
+            popupContainer.appendChild(
+              gust
+            );
+
+            const pressure =
+              document.createElement(
+                "div"
+              );
+
+            pressure.textContent =
+              `Pressure: ${
+                location.weather
+                  ?.pressure ??
+                "--"
+              } hPa`;
+
+            popupContainer.appendChild(
+              pressure
+            );
+
+            const observation =
+              document.createElement(
+                "small"
+              );
+
+            observation.style.display =
+              "block";
+
+            observation.style.marginTop =
+              "7px";
+
+            observation.style.opacity =
+              "0.7";
+
+            observation.textContent =
+              `Observed: ${
+                location.observationTime ||
+                "Unavailable"
+              }`;
+
+            popupContainer.appendChild(
+              observation
+            );
+
+            const source =
+              document.createElement(
+                "small"
+              );
+
+            source.style.display =
+              "block";
+
+            source.style.opacity =
+              "0.7";
+
+            source.textContent =
+              `Source: ${
+                location.source ||
+                "Open-Meteo"
+              }`;
+
+            popupContainer.appendChild(
+              source
+            );
+
+            // =========================================
+            // POPUP
+            // =========================================
+
+            const popup =
+              new mapboxgl.Popup({
+                closeButton:
+                  true,
+
+                closeOnClick:
+                  true,
+
+                offset:
+                  18,
+              })
+                .setDOMContent(
+                  popupContainer
+                );
+
+            // =========================================
+            // ADD MARKER
+            // =========================================
+
+            const marker =
+              new mapboxgl.Marker({
+                element:
+                  markerElement,
+
+                anchor:
+                  "bottom",
+              })
+                .setLngLat([
+                  Number(
+                    location.longitude
+                  ),
+
+                  Number(
+                    location.latitude
+                  ),
+                ])
+                .setPopup(
+                  popup
+                )
+                .addTo(
+                  map
+                );
+
+            weatherMarkersRef
+              .current
+              .push(
+                marker
+              );
+          }
+
+          console.log(
+            "WORLD WEATHER READY:",
+            weatherMarkersRef
+              .current
+              .length
+          );
+        } catch (
+          error
+        ) {
+          console.error(
+            "WEATHER LAYER ERROR:",
+            error
+          );
+        }
+      };
+
+    loadWeather();
+
+    return () => {
+      cancelled =
+        true;
+
+      clearWeatherMarkers();
+    };
+  }, [
+    activeLayers.weather,
+  ]);
+
+  // ===================================================
+  // MAP INITIALIZATION
+  // ===================================================
+
+  useEffect(() => {
+    if (
+      !mapContainer.current
+    ) {
+      return;
+    }
+
+    if (mapRef.current) {
+      return;
+    }
+
+    const map =
+      new mapboxgl.Map({
+        container:
+          mapContainer.current,
+
+        style:
+          "mapbox://styles/mapbox/dark-v11",
+
+        center: [
+          20,
+          20,
+        ],
+
+        zoom:
+          1.45,
+
+        minZoom:
+          1,
+
+        maxZoom:
+          10,
+
+        projection:
+          "globe",
+      });
+
+    mapRef.current =
+      map;
+
+    map.addControl(
+      new mapboxgl.NavigationControl({
+        showCompass:
+          true,
+
+        showZoom:
+          true,
+      }),
+
+      "top-right"
+    );
+
+    map.on(
+      "load",
+      async () => {
+        console.log(
+          "MAPBOX WORLD MAP LOADED"
+        );
+
+        map.setFog({
+          color:
+            "rgb(15, 23, 42)",
+
+          "high-color":
+            "rgb(30, 41, 59)",
+
+          "horizon-blend":
+            0.08,
+
+          "space-color":
+            "rgb(2, 6, 23)",
+
+          "star-intensity":
+            0.15,
+        });
+
+        try {
+          const response =
+            await fetch(
+              COUNTRY_GEOJSON_URL
+            );
+
+          if (
+            !response.ok
+          ) {
+            throw new Error(
+              `Country GeoJSON HTTP ${response.status}`
+            );
+          }
+
+          const geojson =
+            await response.json();
+
+          if (
+            !map.getSource(
+              "countries-source"
+            )
+          ) {
+            map.addSource(
+              "countries-source",
+              {
+                type:
+                  "geojson",
+
+                data:
+                  geojson,
+
+                generateId:
+                  true,
+              }
+            );
+          }
+
+          map.addLayer({
+            id:
+              "countries-base",
+
+            type:
+              "fill",
+
+            source:
+              "countries-source",
+
+            paint: {
+              "fill-color":
+                "#0f172a",
+
+              "fill-opacity":
+                0.05,
+            },
+          });
+
+          map.addLayer({
+            id:
+              "countries-hover",
+
+            type:
+              "fill",
+
+            source:
+              "countries-source",
+
+            paint: {
+              "fill-color":
+                "#38bdf8",
+
+              "fill-opacity": [
+                "case",
+
+                [
+                  "boolean",
+
+                  [
+                    "feature-state",
+                    "hover",
+                  ],
+
+                  false,
+                ],
+
+                0.25,
+
+                0,
+              ],
+            },
+          });
+
+          map.addLayer({
+            id:
+              "country-selected",
+
+            type:
+              "fill",
+
+            source:
+              "countries-source",
+
+            paint: {
+              "fill-color":
+                "#22c55e",
+
+              "fill-opacity": [
+                "case",
+
+                [
+                  "boolean",
+
+                  [
+                    "feature-state",
+                    "selected",
+                  ],
+
+                  false,
+                ],
+
+                0.22,
+
+                0,
+              ],
+            },
+          });
+
+          map.addLayer({
+            id:
+              "countries-border",
+
+            type:
+              "line",
+
+            source:
+              "countries-source",
+
+            paint: {
+              "line-color":
+                "#64748b",
+
+              "line-width":
+                0.7,
+
+              "line-opacity":
+                0.7,
+            },
+          });
+
+          let hoveredId:
+            | string
+            | number
+            | null = null;
+
+          let selectedId:
+            | string
+            | number
+            | null = null;
+
+          map.on(
+            "mousemove",
+            "countries-hover",
+            (event) => {
+              if (
+                !event.features
+                  ?.length
+              ) {
+                return;
+              }
+
+              map.getCanvas()
+                .style.cursor =
+                "pointer";
+
+              const feature =
+                event.features[0];
+
+              if (
+                hoveredId !==
+                null
+              ) {
+                map.setFeatureState(
+                  {
+                    source:
+                      "countries-source",
+
+                    id:
+                      hoveredId,
+                  },
+
+                  {
+                    hover:
+                      false,
+                  }
+                );
+              }
+
+              hoveredId =
+                feature.id ??
+                null;
+
+              if (
+                hoveredId !==
+                null
+              ) {
+                map.setFeatureState(
+                  {
+                    source:
+                      "countries-source",
+
+                    id:
+                      hoveredId,
+                  },
+
+                  {
+                    hover:
+                      true,
+                  }
+                );
+              }
+            }
+          );
+
+          map.on(
+            "mouseleave",
+            "countries-hover",
+            () => {
+              map.getCanvas()
+                .style.cursor =
+                "";
+
+              if (
+                hoveredId !==
+                null
+              ) {
+                map.setFeatureState(
+                  {
+                    source:
+                      "countries-source",
+
+                    id:
+                      hoveredId,
+                  },
+
+                  {
+                    hover:
+                      false,
+                  }
+                );
+              }
+
+              hoveredId =
+                null;
+            }
+          );
+
+          map.on(
+            "click",
+            "countries-hover",
+            (event) => {
+              const mapFeature =
+                event.features
+                  ?.[0];
+
+              if (
+                !mapFeature
+              ) {
+                return;
+              }
+
+              const properties =
+                mapFeature.properties as
+                  | CountryFeatureProperties
+                  | undefined;
+
+              const countryName =
+                String(
+                  properties
+                    ?.ADMIN ||
+                    properties
+                      ?.NAME ||
+                    properties
+                      ?.name ||
+                    "Unknown Country"
+                );
+
+              const countryCode =
+                String(
+                  properties?.[
+                    "ISO3166-1-Alpha-3"
+                  ] ||
+                    properties
+                      ?.ISO_A3 ||
+                    properties
+                      ?.ADM0_A3 ||
+                    ""
+                )
+                  .toUpperCase()
+                  .trim();
+
+              if (
+                selectedId !==
+                null
+              ) {
+                map.setFeatureState(
+                  {
+                    source:
+                      "countries-source",
+
+                    id:
+                      selectedId,
+                  },
+
+                  {
+                    selected:
+                      false,
+                  }
+                );
+              }
+
+              selectedId =
+                mapFeature.id ??
+                null;
+
+              if (
+                selectedId !==
+                null
+              ) {
+                map.setFeatureState(
+                  {
+                    source:
+                      "countries-source",
+
+                    id:
+                      selectedId,
+                  },
+
+                  {
+                    selected:
+                      true,
+                  }
+                );
+              }
+
+              new mapboxgl.Popup({
+                closeButton:
+                  true,
+
+                closeOnClick:
+                  true,
+
+                offset:
+                  10,
+              })
+                .setLngLat(
+                  event.lngLat
+                )
+                .setHTML(
+                  `
+                    <div
+                      style="
+                        color:#0f172a;
+                        font-family:Arial,sans-serif;
+                        min-width:170px;
+                        line-height:1.45;
+                      "
+                    >
+                      <strong>
+                        ${countryName}
+                      </strong>
+
+                      <br/>
+
+                      <span
+                        style="
+                          font-size:11px;
+                          opacity:0.65;
+                        "
+                      >
+                        ${
+                          countryCode ||
+                          "ISO unavailable"
+                        }
+                      </span>
+
+                      <br/>
+
+                      <small>
+                        Open country intelligence
+                      </small>
+                    </div>
+                  `
+                )
+                .addTo(
+                  map
+                );
+
+              if (
+                countryCode
+              ) {
+                onCountrySelectRef
+                  .current?.(
+                    countryName,
+                    countryCode
+                  );
+              }
+            }
+          );
+
+          console.log(
+            "ALL COUNTRY ISO CLICK READY"
+          );
+        } catch (
+          error
+        ) {
+          console.error(
+            "COUNTRY LAYER ERROR:",
+            error
+          );
+        }
+      }
+    );
+
+    return () => {
+      clearWeatherMarkers();
+
+      map.remove();
+
+      mapRef.current =
+        null;
+    };
+  }, []);
+
+  // ===================================================
+  // UI
+  // ===================================================
+
+  return (
+    <section className="map-panel">
+      <div className="section-title">
+        <div>
+          <h2>
+            ðŸŒ World Intelligence Map
+          </h2>
+
+          <p>
+            Click any country to open intelligence
+          </p>
+        </div>
+
+        <span>
+          MAPBOX
+        </span>
+      </div>
+
+      <div
+        ref={
+          mapContainer
+        }
+        style={{
+          width:
+            "100%",
+
+          height:
+            "580px",
+
+          minHeight:
+            "580px",
+
+          borderRadius:
+            "14px",
+
+          overflow:
+            "hidden",
+
+          background:
+            "#020617",
+        }}
+      />
+
+      <MapLayerControls
+        activeLayers={
+          activeLayers
+        }
+
+        onToggle={
+          toggleMapLayer
+        }
+      />
+    </section>
+  );
+}
+
+export default MapboxWorldMap;
+
+

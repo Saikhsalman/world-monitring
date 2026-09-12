@@ -1,0 +1,1308 @@
+﻿import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import mapboxgl from "mapbox-gl";
+
+import MapLayerControls, {
+  type LayerKey,
+} from "./MapLayerControls";
+
+import "mapbox-gl/dist/mapbox-gl.css";
+
+mapboxgl.accessToken =
+  import.meta.env.VITE_MAPBOX_TOKEN;
+
+type Props = {
+  onCountrySelect?: (
+    countryName: string,
+    countryCode: string
+  ) => void;
+};
+
+type CountryProps = {
+  ADMIN?: string;
+  NAME?: string;
+  name?: string;
+  "ISO3166-1-Alpha-3"?: string;
+  ISO_A3?: string;
+  ADM0_A3?: string;
+};
+
+type WeatherLocation = {
+  id: string;
+  city: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  status: string;
+
+  weather?: {
+    temperature?: number | null;
+    feelsLike?: number | null;
+    humidity?: number | null;
+    rain?: number | null;
+    pressure?: number | null;
+    windSpeed?: number | null;
+    windGust?: number | null;
+    condition?: string;
+  };
+
+  observationTime?: string | null;
+  source?: string;
+};
+
+type WeatherResponse = {
+  locations: WeatherLocation[];
+};
+
+type LiveFlight = {
+  callsign: string;
+
+  flightIcao?: string | null;
+  flightIata?: string | null;
+  flightNumber?: string | null;
+
+  regNumber?: string | null;
+  aircraftIcao?: string | null;
+
+  latitude: number | null;
+  longitude: number | null;
+
+  altitude?: number | null;
+  speed?: number | null;
+  direction?: number | null;
+  verticalSpeed?: number | null;
+};
+
+type FlightResponse = {
+  status: string;
+  source: string;
+  count: number;
+  flights: LiveFlight[];
+};
+
+type LiveShip = {
+  mmsi: string;
+  shipName?: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  speedKnots?: number | null;
+  course?: number | null;
+  heading?: number | null;
+  navigationStatus?: number | null;
+  source?: string;
+};
+
+type ShipResponse = {
+  status: string;
+  source: string;
+  connected: boolean;
+  count: number;
+  ships: LiveShip[];
+};
+
+const COUNTRY_GEOJSON_URL =
+  "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
+
+function weatherIcon(
+  condition?: string
+) {
+  const text =
+    String(
+      condition || ""
+    ).toLowerCase();
+
+  if (text.includes("thunder")) {
+    return "⛈️";
+  }
+
+  if (
+    text.includes("rain") ||
+    text.includes("drizzle")
+  ) {
+    return "🌧️";
+  }
+
+  if (text.includes("snow")) {
+    return "🌨️";
+  }
+
+  if (text.includes("fog")) {
+    return "🌫️";
+  }
+
+  if (text.includes("cloud")) {
+    return "☁️";
+  }
+
+  if (text.includes("clear")) {
+    return "☀️";
+  }
+
+  return "🌦️";
+}
+
+function MapboxWorldMap({
+  onCountrySelect,
+}: Props) {
+  const mapContainer =
+    useRef<HTMLDivElement | null>(
+      null
+    );
+
+  const mapRef =
+    useRef<mapboxgl.Map | null>(
+      null
+    );
+
+  const callbackRef =
+    useRef(onCountrySelect);
+
+  const weatherMarkers =
+    useRef<mapboxgl.Marker[]>(
+      []
+    );
+
+  const flightMarkers =
+    useRef<mapboxgl.Marker[]>(
+      []
+    );
+
+  const shipMarkers =
+    useRef<mapboxgl.Marker[]>(
+      []
+    );
+
+  const [
+    mapReady,
+    setMapReady,
+  ] =
+    useState(false);
+
+  const [
+    activeLayers,
+    setActiveLayers,
+  ] = useState<
+    Record<
+      LayerKey,
+      boolean
+    >
+  >({
+    countries: true,
+    weather: false,
+    flights: false,
+    ships: false,
+  });
+
+  useEffect(() => {
+    callbackRef.current =
+      onCountrySelect;
+  }, [onCountrySelect]);
+
+  const toggleLayer = (
+    layer: LayerKey
+  ) => {
+    setActiveLayers(
+      (current) => ({
+        ...current,
+        [layer]:
+          !current[layer],
+      })
+    );
+  };
+
+  const clearWeather =
+    () => {
+      weatherMarkers.current.forEach(
+        (marker) =>
+          marker.remove()
+      );
+
+      weatherMarkers.current =
+        [];
+    };
+
+  const clearFlights =
+    () => {
+      flightMarkers.current.forEach(
+        (marker) =>
+          marker.remove()
+      );
+
+      flightMarkers.current =
+        [];
+    };
+
+  const clearShips = () => {
+    shipMarkers.current.forEach(
+      (marker) => marker.remove()
+    );
+    shipMarkers.current = [];
+  };
+
+  // =============================================
+  // COUNTRY VISIBILITY
+  // =============================================
+
+  useEffect(() => {
+    const map =
+      mapRef.current;
+
+    if (
+      !map ||
+      !map.isStyleLoaded()
+    ) {
+      return;
+    }
+
+    const visibility =
+      activeLayers.countries
+        ? "visible"
+        : "none";
+
+    [
+      "countries-base",
+      "countries-hover",
+      "country-selected",
+      "countries-border",
+    ].forEach(
+      (id) => {
+        if (map.getLayer(id)) {
+          map.setLayoutProperty(
+            id,
+            "visibility",
+            visibility
+          );
+        }
+      }
+    );
+  }, [
+    activeLayers.countries,
+  ]);
+
+  // =============================================
+  // WEATHER
+  // =============================================
+
+  useEffect(() => {
+    const map =
+      mapRef.current;
+
+    if (!map) {
+      return;
+    }
+
+    if (
+      !activeLayers.weather
+    ) {
+      clearWeather();
+      return;
+    }
+
+    let cancelled =
+      false;
+
+    const loadWeather =
+      async () => {
+        try {
+          const response =
+            await fetch(
+              "/api/weather/world"
+            );
+
+          if (!response.ok) {
+            throw new Error(
+              `Weather HTTP ${response.status}`
+            );
+          }
+
+          const data:
+            WeatherResponse =
+            await response.json();
+
+          if (cancelled) {
+            return;
+          }
+
+          clearWeather();
+
+          for (
+            const item
+            of data.locations || []
+          ) {
+            if (
+              item.status !==
+              "live"
+            ) {
+              continue;
+            }
+
+            const el =
+              document.createElement(
+                "button"
+              );
+
+            el.type =
+              "button";
+
+            el.style.cssText =
+              `
+                border:1px solid #38bdf8;
+                background:rgba(2,6,23,.9);
+                color:#e2e8f0;
+                border-radius:9px;
+                padding:5px 7px;
+                cursor:pointer;
+                font-size:11px;
+                font-weight:700;
+                white-space:nowrap;
+              `;
+
+            const icon =
+              weatherIcon(
+                item.weather
+                  ?.condition
+              );
+
+            el.textContent =
+              `${icon} ${
+                item.weather
+                  ?.temperature ??
+                "--"
+              }°C`;
+
+            const popup =
+              new mapboxgl.Popup({
+                offset: 18,
+              })
+                .setHTML(
+                  `
+                  <div style="color:#0f172a;min-width:210px;line-height:1.5">
+                    <strong>
+                      ${icon} ${item.city}, ${item.country}
+                    </strong>
+                    <div>
+                      Condition: ${item.weather?.condition ?? "--"}
+                    </div>
+                    <div>
+                      Temperature: ${item.weather?.temperature ?? "--"} °C
+                    </div>
+                    <div>
+                      Feels like: ${item.weather?.feelsLike ?? "--"} °C
+                    </div>
+                    <div>
+                      Humidity: ${item.weather?.humidity ?? "--"}%
+                    </div>
+                    <div>
+                      Rain: ${item.weather?.rain ?? 0} mm
+                    </div>
+                    <div>
+                      Wind: ${item.weather?.windSpeed ?? "--"} km/h
+                    </div>
+                    <div>
+                      Gust: ${item.weather?.windGust ?? "--"} km/h
+                    </div>
+                    <div>
+                      Pressure: ${item.weather?.pressure ?? "--"} hPa
+                    </div>
+                    <small>
+                      ${item.observationTime ?? ""}
+                    </small>
+                  </div>
+                  `
+                );
+
+            const marker =
+              new mapboxgl.Marker({
+                element: el,
+                anchor:
+                  "bottom",
+              })
+                .setLngLat([
+                  item.longitude,
+                  item.latitude,
+                ])
+                .setPopup(
+                  popup
+                )
+                .addTo(
+                  map
+                );
+
+            weatherMarkers.current.push(
+              marker
+            );
+          }
+        } catch (error) {
+          console.error(
+            "WEATHER LAYER ERROR:",
+            error
+          );
+        }
+      };
+
+    loadWeather();
+
+    return () => {
+      cancelled =
+        true;
+
+      clearWeather();
+    };
+  }, [
+    activeLayers.weather,
+  ]);
+
+  // =============================================
+  // LIVE FLIGHTS
+  // =============================================
+
+  useEffect(() => {
+    const map =
+      mapRef.current;
+
+    if (!map) {
+      return;
+    }
+
+    if (
+      !activeLayers.flights
+    ) {
+      clearFlights();
+      return;
+    }
+
+    let cancelled =
+      false;
+
+    const loadFlights =
+      async () => {
+        try {
+          const response =
+            await fetch(
+              "/api/flights/live"
+            );
+
+          if (!response.ok) {
+            throw new Error(
+              `Flights HTTP ${response.status}`
+            );
+          }
+
+          const data:
+            FlightResponse =
+            await response.json();
+
+          if (cancelled) {
+            return;
+          }
+
+          clearFlights();
+
+          const flights =
+            (data.flights || [])
+              .filter(
+                (flight) =>
+                  flight.latitude !==
+                    null &&
+                  flight.longitude !==
+                    null
+              )
+              .slice(
+                0,
+                500
+              );
+
+          for (
+            const flight
+            of flights
+          ) {
+            const el =
+              document.createElement(
+                "button"
+              );
+
+            el.type =
+              "button";
+
+            el.textContent =
+              "✈";
+
+            el.style.cssText =
+              `
+                border:none;
+                background:transparent;
+                color:#f8fafc;
+                font-size:16px;
+                cursor:pointer;
+                width:20px;
+                height:20px;
+                padding:0;
+                text-shadow:0 0 6px #38bdf8;
+              `;
+
+            if (
+              flight.direction !==
+                null &&
+              flight.direction !==
+                undefined
+            ) {
+              el.style.transform =
+                `rotate(${flight.direction}deg)`;
+            }
+
+            const flightName =
+              flight.flightIata ||
+              flight.flightIcao ||
+              flight.flightNumber ||
+              flight.callsign ||
+              "Unknown";
+
+            const popup =
+              new mapboxgl.Popup({
+                offset: 15,
+              })
+                .setHTML(
+                  `
+                  <div style="color:#0f172a;min-width:210px;line-height:1.5">
+                    <strong>
+                      ✈ ${flightName}
+                    </strong>
+
+                    <div>
+                      Callsign: ${flight.callsign || "--"}
+                    </div>
+
+                    <div>
+                      Aircraft: ${flight.aircraftIcao || flight.regNumber || "--"}
+                    </div>
+
+                    <div>
+                      Altitude: ${
+                        flight.altitude ??
+                        "--"
+                      } m
+                    </div>
+
+                    <div>
+                      Speed: ${
+                        flight.speed ??
+                        "--"
+                      } km/h
+                    </div>
+
+                    <div>
+                      Heading: ${
+                        flight.direction ??
+                        "--"
+                      }°
+                    </div>
+
+                    <div>
+                      Vertical Speed: ${
+                        flight.verticalSpeed ??
+                        "--"
+                      }
+                    </div>
+
+                    <small>
+                      Source: ${data.source || "AirLabs"}
+                    </small>
+                  </div>
+                  `
+                );
+
+            const marker =
+              new mapboxgl.Marker({
+                element: el,
+                anchor:
+                  "center",
+              })
+                .setLngLat([
+                  Number(
+                    flight.longitude
+                  ),
+                  Number(
+                    flight.latitude
+                  ),
+                ])
+                .setPopup(
+                  popup
+                )
+                .addTo(
+                  map
+                );
+
+            flightMarkers.current.push(
+              marker
+            );
+          }
+
+          console.log(
+            "LIVE FLIGHTS READY:",
+            flightMarkers.current.length
+          );
+        } catch (error) {
+          console.error(
+            "FLIGHT LAYER ERROR:",
+            error
+          );
+        }
+      };
+
+    loadFlights();
+
+    // Refresh every 60 sec while ON.
+    const timer =
+      window.setInterval(
+        loadFlights,
+        60000
+      );
+
+    return () => {
+      cancelled =
+        true;
+
+      window.clearInterval(
+        timer
+      );
+
+      clearFlights();
+    };
+  }, [
+    activeLayers.flights,
+  ]);
+
+  // =============================================
+  // LIVE SHIPS
+  // =============================================
+
+  useEffect(() => {
+    const map = mapRef.current;
+
+    if (
+      !map ||
+      !mapReady
+    ) {
+      return;
+    }
+
+    if (!activeLayers.ships) {
+      clearShips();
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadShips = async () => {
+      try {
+        const response =
+          await fetch(
+            `/api/ships/live?t=${Date.now()}`
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            `Ships HTTP ${response.status}`
+          );
+        }
+
+        const data: ShipResponse =
+          await response.json();
+
+        if (cancelled) return;
+
+        clearShips();
+
+        const ships = (data.ships || [])
+          .filter((ship) => {
+            const lat = Number(ship.latitude);
+            const lng = Number(ship.longitude);
+            return Number.isFinite(lat) &&
+              Number.isFinite(lng) &&
+              lat >= -90 && lat <= 90 &&
+              lng >= -180 && lng <= 180;
+          })
+          .slice(0, 500);
+
+        for (const ship of ships) {
+          const el =
+            document.createElement("button");
+
+          el.type = "button";
+
+          el.innerHTML = `
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2 L15 7 L20 9 L18 19 L12 22 L6 19 L4 9 L9 7 Z"
+                fill="#22d3ee"
+                stroke="#ecfeff"
+                stroke-width="1.2"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M12 4 L12 20"
+                stroke="#083344"
+                stroke-width="1.2"
+              />
+            </svg>
+          `;
+
+          el.style.cssText = `
+            border:none;
+            background:transparent;
+            cursor:pointer;
+            width:24px;
+            height:24px;
+            padding:0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            filter:drop-shadow(0 0 5px #06b6d4);
+          `;
+
+          const direction =
+            Number(ship.heading ?? ship.course ?? 0);
+
+          if (Number.isFinite(direction)) {
+            el.style.transform =
+              `rotate(${direction}deg)`;
+          }
+
+          const shipName =
+            ship.shipName || `MMSI ${ship.mmsi}`;
+
+          const popup =
+            new mapboxgl.Popup({ offset: 15 })
+              .setHTML(`
+                <div style="color:#0f172a;min-width:220px;line-height:1.5">
+                  <strong>🚢 ${shipName}</strong>
+                  <div>MMSI: ${ship.mmsi || "--"}</div>
+                  <div>Speed: ${ship.speedKnots ?? "--"} knots</div>
+                  <div>Course: ${ship.course ?? "--"}°</div>
+                  <div>Heading: ${ship.heading ?? "--"}°</div>
+                  <div>Navigation Status: ${ship.navigationStatus ?? "--"}</div>
+                  <div>Position: ${Number(ship.latitude).toFixed(4)}, ${Number(ship.longitude).toFixed(4)}</div>
+                  <small>Source: ${ship.source || data.source || "AISStream"}</small>
+                </div>
+              `);
+
+          const marker =
+            new mapboxgl.Marker({
+              element: el,
+              anchor: "center",
+            })
+              .setLngLat([
+                Number(ship.longitude),
+                Number(ship.latitude),
+              ])
+              .setPopup(popup)
+              .addTo(map);
+
+          shipMarkers.current.push(marker);
+        }
+
+        console.log(
+          "LIVE SHIPS READY:",
+          shipMarkers.current.length
+        );
+      } catch (error) {
+        console.error(
+          "SHIP LAYER ERROR:",
+          error
+        );
+      }
+    };
+
+    loadShips();
+
+    const timer =
+      window.setInterval(loadShips, 30000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      clearShips();
+    };
+  }, [
+    activeLayers.ships,
+    mapReady,
+  ]);
+
+  // =============================================
+  // MAP
+  // =============================================
+
+  useEffect(() => {
+    if (
+      !mapContainer.current ||
+      mapRef.current
+    ) {
+      return;
+    }
+
+    const map =
+      new mapboxgl.Map({
+        container:
+          mapContainer.current,
+
+        style:
+          "mapbox://styles/mapbox/dark-v11",
+
+        center: [
+          20,
+          20,
+        ],
+
+        zoom: 1.45,
+
+        minZoom: 1,
+
+        maxZoom: 18,
+
+        projection:
+          "globe",
+      });
+
+    mapRef.current =
+      map;
+
+    map.addControl(
+      new mapboxgl.NavigationControl(),
+      "top-right"
+    );
+
+    map.on(
+      "load",
+      async () => {
+        setMapReady(
+          true
+        );
+
+        map.setFog({
+          color:
+            "rgb(15,23,42)",
+
+          "high-color":
+            "rgb(30,41,59)",
+
+          "space-color":
+            "rgb(2,6,23)",
+
+          "horizon-blend":
+            0.08,
+
+          "star-intensity":
+            0.15,
+        });
+
+        try {
+          const response =
+            await fetch(
+              COUNTRY_GEOJSON_URL
+            );
+
+          const geojson =
+            await response.json();
+
+          map.addSource(
+            "countries-source",
+            {
+              type: "geojson",
+              data: geojson,
+              generateId: true,
+            }
+          );
+
+          map.addLayer({
+            id:
+              "countries-base",
+
+            type: "fill",
+
+            source:
+              "countries-source",
+
+            paint: {
+              "fill-color":
+                "#0f172a",
+
+              "fill-opacity":
+                0.05,
+            },
+          });
+
+          map.addLayer({
+            id:
+              "countries-hover",
+
+            type: "fill",
+
+            source:
+              "countries-source",
+
+            paint: {
+              "fill-color":
+                "#38bdf8",
+
+              "fill-opacity": [
+                "case",
+                [
+                  "boolean",
+                  [
+                    "feature-state",
+                    "hover",
+                  ],
+                  false,
+                ],
+                0.25,
+                0,
+              ],
+            },
+          });
+
+          map.addLayer({
+            id:
+              "country-selected",
+
+            type: "fill",
+
+            source:
+              "countries-source",
+
+            paint: {
+              "fill-color":
+                "#22c55e",
+
+              "fill-opacity": [
+                "case",
+                [
+                  "boolean",
+                  [
+                    "feature-state",
+                    "selected",
+                  ],
+                  false,
+                ],
+                0.22,
+                0,
+              ],
+            },
+          });
+
+          map.addLayer({
+            id:
+              "countries-border",
+
+            type: "line",
+
+            source:
+              "countries-source",
+
+            paint: {
+              "line-color":
+                "#64748b",
+
+              "line-width":
+                0.7,
+
+              "line-opacity":
+                0.7,
+            },
+          });
+
+          let hoveredId:
+            number |
+            string |
+            null =
+            null;
+
+          let selectedId:
+            number |
+            string |
+            null =
+            null;
+
+          map.on(
+            "mousemove",
+            "countries-hover",
+            (event) => {
+              const feature =
+                event.features?.[0];
+
+              if (!feature) {
+                return;
+              }
+
+              map.getCanvas()
+                .style.cursor =
+                "pointer";
+
+              if (
+                hoveredId !==
+                null
+              ) {
+                map.setFeatureState(
+                  {
+                    source:
+                      "countries-source",
+                    id:
+                      hoveredId,
+                  },
+                  {
+                    hover:
+                      false,
+                  }
+                );
+              }
+
+              hoveredId =
+                feature.id ??
+                null;
+
+              if (
+                hoveredId !==
+                null
+              ) {
+                map.setFeatureState(
+                  {
+                    source:
+                      "countries-source",
+                    id:
+                      hoveredId,
+                  },
+                  {
+                    hover:
+                      true,
+                  }
+                );
+              }
+            }
+          );
+
+          map.on(
+            "mouseleave",
+            "countries-hover",
+            () => {
+              map.getCanvas()
+                .style.cursor =
+                "";
+
+              if (
+                hoveredId !==
+                null
+              ) {
+                map.setFeatureState(
+                  {
+                    source:
+                      "countries-source",
+                    id:
+                      hoveredId,
+                  },
+                  {
+                    hover:
+                      false,
+                  }
+                );
+              }
+
+              hoveredId =
+                null;
+            }
+          );
+
+          map.on(
+            "click",
+            "countries-hover",
+            (event) => {
+              const feature =
+                event.features?.[0];
+
+              if (!feature) {
+                return;
+              }
+
+              const props =
+                feature.properties as
+                  | CountryProps
+                  | undefined;
+
+              const name =
+                String(
+                  props?.ADMIN ||
+                    props?.NAME ||
+                    props?.name ||
+                    "Unknown Country"
+                );
+
+              const code =
+                String(
+                  props?.[
+                    "ISO3166-1-Alpha-3"
+                  ] ||
+                    props?.ISO_A3 ||
+                    props?.ADM0_A3 ||
+                    ""
+                )
+                  .toUpperCase()
+                  .trim();
+
+              if (
+                selectedId !==
+                null
+              ) {
+                map.setFeatureState(
+                  {
+                    source:
+                      "countries-source",
+                    id:
+                      selectedId,
+                  },
+                  {
+                    selected:
+                      false,
+                  }
+                );
+              }
+
+              selectedId =
+                feature.id ??
+                null;
+
+              if (
+                selectedId !==
+                null
+              ) {
+                map.setFeatureState(
+                  {
+                    source:
+                      "countries-source",
+                    id:
+                      selectedId,
+                  },
+                  {
+                    selected:
+                      true,
+                  }
+                );
+              }
+
+              new mapboxgl.Popup()
+                .setLngLat(
+                  event.lngLat
+                )
+                .setHTML(
+                  `
+                  <div style="color:#0f172a">
+                    <strong>
+                      ${name}
+                    </strong>
+                    <br/>
+                    <small>
+                      ${code || "ISO unavailable"}
+                    </small>
+                  </div>
+                  `
+                )
+                .addTo(
+                  map
+                );
+
+              if (code) {
+                callbackRef
+                  .current?.(
+                    name,
+                    code
+                  );
+              }
+            }
+          );
+        } catch (error) {
+          console.error(
+            "COUNTRY MAP ERROR:",
+            error
+          );
+        }
+      }
+    );
+
+    return () => {
+      clearWeather();
+      clearFlights();
+      clearShips();
+
+      map.remove();
+
+      mapRef.current =
+        null;
+
+      setMapReady(
+        false
+      );
+    };
+  }, []);
+
+  return (
+    <section className="map-panel">
+      <div className="section-title">
+        <div>
+          <h2>
+            🌍 World Intelligence Map
+          </h2>
+
+          <p>
+            Click any country to open intelligence
+          </p>
+        </div>
+
+        <span>
+          MAPBOX
+        </span>
+      </div>
+
+      <div
+        ref={
+          mapContainer
+        }
+        style={{
+          width:
+            "100%",
+
+          height:
+            "580px",
+
+          minHeight:
+            "580px",
+
+          borderRadius:
+            "14px",
+
+          overflow:
+            "hidden",
+
+          background:
+            "#020617",
+        }}
+      />
+
+      <MapLayerControls
+        activeLayers={
+          activeLayers
+        }
+        onToggle={
+          toggleLayer
+        }
+      />
+    </section>
+  );
+}
+
+export default MapboxWorldMap;
