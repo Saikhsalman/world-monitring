@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../config";
 export type NewsIntelligence = {
   score: number;
   impact: "HIGH" | "MEDIUM" | "LOW";
@@ -58,7 +59,7 @@ export type BreakingNewsData = {
 
 export async function getBreakingNews(): Promise<BreakingNewsData> {
   const response = await fetch(
-    "/api/news/breaking"
+    `${API_BASE_URL}/api/news/breaking`
   );
 
   if (!response.ok) {

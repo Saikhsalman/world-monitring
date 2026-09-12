@@ -1,4 +1,5 @@
 ﻿import mapboxgl from "mapbox-gl";
+import { API_BASE_URL } from "../config";
 
 type ImpactCountry = {
   countryCode: string;
@@ -130,7 +131,7 @@ export async function showImpactLines(
 ) {
   const response =
     await fetch(
-      `/api/intelligence/impact/${eventId}?t=${Date.now()}`
+      `${API_BASE_URL}/api/intelligence/impact/${eventId}?t=${Date.now()}`
     );
 
   if (!response.ok) {

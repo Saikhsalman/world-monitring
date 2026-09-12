@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../config";
 export type RbiRateItem = {
   name: string;
   value: number | null;
@@ -87,7 +88,7 @@ export type RbiMarketSnapshotData = {
 
 export async function getRbiPolicyRates(): Promise<RbiPolicyRatesData> {
   const response = await fetch(
-    "/api/rbi/policy-rates"
+    `${API_BASE_URL}/api/rbi/policy-rates`
   );
 
   if (!response.ok) {

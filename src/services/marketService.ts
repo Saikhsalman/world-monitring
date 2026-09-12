@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../config";
 export type TwelveMarketItem = {
   label: string;
   symbol: string;
@@ -60,7 +61,7 @@ export type GlobalMarketsData = {
 };
 
 export async function getGlobalMarkets(): Promise<GlobalMarketsData> {
-  const response = await fetch("/api/markets/global");
+  const response = await fetch(`${API_BASE_URL}/api/markets/global`);
 
   if (!response.ok) {
     throw new Error(
